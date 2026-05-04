@@ -565,6 +565,89 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
   font-size: 0 !important;
 }
 
+/* ===== Transición suave de la imagen principal ===== */
+#main-product-image {
+  transition: opacity 0.35s ease, transform 0.45s ease;
+  will-change: opacity, transform;
+}
+#main-product-image.is-swapping {
+  opacity: 0;
+  transform: scale(0.985);
+}
+
+/* ===== Panel descriptivo dinámico (debajo de la imagen) ===== */
+.feature-caption {
+  margin-top: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
+  border: 1px solid #e5e5ea;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+  min-height: 96px;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-caption::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(0, 113, 227, 0.06), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+
+.feature-caption.is-active::before {
+  opacity: 1;
+}
+
+.feature-caption-inner {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.feature-caption.is-changing .feature-caption-inner {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.feature-caption-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0071e3;
+  margin-bottom: 0.4rem;
+}
+
+.feature-caption-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0 0 0.4rem 0;
+  line-height: 1.3;
+}
+
+.feature-caption-text {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #515154;
+  margin: 0;
+}
+
+@media (max-width: 575.98px) {
+  .feature-caption {
+    margin-top: 0.85rem;
+    padding: 0.85rem 1rem;
+    min-height: auto;
+  }
+  .feature-caption-title { font-size: 1rem; }
+  .feature-caption-text  { font-size: 0.85rem; }
+}
+
 /* ===== Apple-Style Features Section ===== */
 .apple-features-section {
   padding: 0.5rem 0;
@@ -760,9 +843,20 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
               @else
               {{-- Si no hay imágenes, mostrar una sola con placeholder --}}
               <div class="thumbnail-grid">
-                <div class="thumbnail-wrapper thumbnail-item active" 
+                <div class="thumbnail-wrapper thumbnail-item active"
                      data-image="{{ asset('assets/img/product/placeholder.webp') }}">
                   <img src="{{ asset('assets/img/product/placeholder.webp') }}" alt="{{ $producto->nombre }}" class="img-fluid">
+                </div>
+              </div>
+              @endif
+
+              {{-- Panel descriptivo dinámico de la característica activa --}}
+              @if($producto->caracteristicas->count() > 0)
+              <div class="feature-caption" id="feature-caption" aria-live="polite">
+                <div class="feature-caption-inner">
+                  <span class="feature-caption-eyebrow" id="feature-caption-eyebrow">Toca una característica</span>
+                  <h4 class="feature-caption-title" id="feature-caption-title">{{ $producto->nombre }}</h4>
+                  <p class="feature-caption-text" id="feature-caption-text">Selecciona una característica para descubrir sus detalles.</p>
                 </div>
               </div>
               @endif
@@ -1680,6 +1774,8 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
       var featureIndex = this.dataset.feature;
       var isActive = this.classList.contains('active');
       var imageUrl = this.dataset.imageUrl;
+      var titulo = (this.querySelector('.apple-feature-title') || {}).textContent || '';
+      var descripcion = (this.querySelector('.apple-feature-body p') || {}).textContent || '';
 
       // Cerrar todos
       document.querySelectorAll('.apple-feature-item').forEach(function(el) {
@@ -1700,17 +1796,20 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
           if (thumb) {
             changeMainImage(imageUrl, thumb);
           } else {
-            // Si no hay thumbnail, cambiar directamente
-            $('#main-product-image').attr('src', imageUrl).attr('data-zoom', imageUrl);
-            $('.thumbnail-item').removeClass('active');
+            // Si no hay thumbnail, cambiar directamente con fade
+            changeMainImage(imageUrl, null);
           }
         }
+
+        // Actualizar panel descriptivo dinámico
+        updateFeatureCaption('Característica destacada', titulo, descripcion || 'Sin descripción disponible.');
       } else {
-        // Al cerrar, volver a la primera imagen del producto
+        // Al cerrar, volver a la primera imagen del producto y restaurar caption
         var firstThumb = document.querySelector('.thumbnail-item[data-type="product"]');
         if (firstThumb) {
           changeMainImage(firstThumb.dataset.image, firstThumb);
         }
+        resetFeatureCaption();
       }
     });
   });
@@ -1854,24 +1953,81 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
 
   // Cambiar imagen principal
   function changeMainImage(url, thumbnail) {
-    $('#main-product-image').attr('src', url);
-    $('#main-product-image').attr('data-zoom', url);
+    var $img = $('#main-product-image');
+    var imgEl = $img.get(0);
+    if (!imgEl) return;
+
+    // Fade-out → swap src → fade-in (con fallback si la imagen tarda)
+    $img.addClass('is-swapping');
+
+    var done = false;
+    var swap = function() {
+      if (done) return;
+      done = true;
+
+      $img.attr('src', url).attr('data-zoom', url);
+
+      var preload = new Image();
+      var reveal = function() {
+        $img.removeClass('is-swapping');
+
+        // Re-inicializar Drift si existe
+        if (typeof Drift !== 'undefined') {
+          var driftTarget = document.querySelector('.drift-zoom');
+          if (driftTarget && driftTarget.drift) driftTarget.drift.destroy();
+          if (driftTarget) {
+            new Drift(driftTarget, {
+              paneContainer: document.querySelector('.image-zoom-container'),
+              inlinePane: true,
+              inlineOffsetY: -85,
+              containInline: true,
+              hoverBoundingBox: true
+            });
+          }
+        }
+      };
+      preload.onload = reveal;
+      preload.onerror = reveal;
+      preload.src = url;
+      // Fallback por si onload no dispara
+      setTimeout(reveal, 450);
+    };
+
+    // Esperar el final del fade-out antes de cambiar src
+    setTimeout(swap, 180);
+
     $('.thumbnail-item').removeClass('active');
     $(thumbnail).addClass('active');
-    
-    // Re-inicializar Drift si existe
-    if (typeof Drift !== 'undefined') {
-      const oldDrift = document.querySelector('.drift-zoom').drift;
-      if (oldDrift) oldDrift.destroy();
-      
-      new Drift(document.querySelector('.drift-zoom'), {
-        paneContainer: document.querySelector('.image-zoom-container'),
-        inlinePane: true,
-        inlineOffsetY: -85,
-        containInline: true,
-        hoverBoundingBox: true
-      });
-    }
+  }
+
+  // === Panel descriptivo dinámico debajo de la imagen ===
+  function updateFeatureCaption(eyebrow, title, text) {
+    var caption = document.getElementById('feature-caption');
+    if (!caption) return;
+
+    caption.classList.add('is-changing');
+    setTimeout(function() {
+      var elE = document.getElementById('feature-caption-eyebrow');
+      var elT = document.getElementById('feature-caption-title');
+      var elP = document.getElementById('feature-caption-text');
+      if (elE) elE.textContent = eyebrow;
+      if (elT) elT.textContent = title;
+      if (elP) elP.textContent = text;
+
+      caption.classList.add('is-active');
+      caption.classList.remove('is-changing');
+    }, 220);
+  }
+
+  function resetFeatureCaption() {
+    var caption = document.getElementById('feature-caption');
+    if (!caption) return;
+    caption.classList.remove('is-active');
+    updateFeatureCaption(
+      'Toca una característica',
+      @json($producto->nombre),
+      'Selecciona una característica para descubrir sus detalles.'
+    );
   }
 
   // Navegación de imágenes con flechas

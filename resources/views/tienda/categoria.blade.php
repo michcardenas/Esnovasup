@@ -67,12 +67,26 @@
           <h3 class="widget-title">Rango de Precio</h3>
 
           <form id="priceRangeForm" method="GET" action="{{ route('tienda.categorias') }}">
-            @foreach(request()->except(['precio_min', 'precio_max', 'precio_min_input', 'precio_max_input']) as $key => $value)
+            {{-- Preservamos el resto de filtros, pero descartamos rango_precio
+                 (mutuamente excluyente con el slider) y los inputs duplicados. --}}
+            @foreach(request()->except(['precio_min', 'precio_max', 'precio_min_input', 'precio_max_input', 'rango_precio', 'page']) as $key => $value)
               @if($value)
                 <input type="hidden" name="{{ $key }}" value="{{ $value }}">
               @endif
             @endforeach
             
+            @php
+              $rango = $precioMax - $precioMin;
+              $step = $rango > 10000 ? 1000 : ($rango > 1000 ? 100 : ($rango > 100 ? 10 : 1));
+              $sliderInutilizable = $rango <= 0;
+            @endphp
+
+            @if($sliderInutilizable)
+              <p class="text-muted small mb-0" style="text-align:center;">
+                Todos los productos de esta categoría tienen el mismo precio
+                (${{ number_format($precioMin, 0, ',', '.') }}). El filtro de rango no aplica aquí.
+              </p>
+            @else
             <div class="price-range-container">
               <div class="current-range mb-3">
                 <span class="min-price">${{ number_format($precioMin, 0, ',', '.') }}</span>
@@ -82,10 +96,6 @@
               <div class="range-slider">
                 <div class="slider-track"></div>
                 <div class="slider-progress"></div>
-                @php
-                  $rango = $precioMax - $precioMin;
-                  $step = $rango > 10000 ? 1000 : ($rango > 1000 ? 100 : ($rango > 100 ? 10 : 1));
-                @endphp
                 <input type="range" class="min-range" name="precio_min" 
                        min="{{ $precioMin }}" max="{{ $precioMax }}" 
                        value="{{ request('precio_min', $precioMin) }}" step="{{ $step }}">
@@ -99,19 +109,23 @@
                   <div class="col-6">
                     <div class="input-group input-group-sm">
                       <span class="input-group-text">$</span>
-                      <input type="number" class="form-control min-price-input" 
-                             placeholder="Min" 
-                             min="{{ $precioMin }}" max="{{ $precioMax }}" 
-                             value="{{ request('precio_min', $precioMin) }}" step="{{ $step }}">
+                      <input type="number" class="form-control min-price-input"
+                             name="precio_min_input"
+                             placeholder="Min"
+                             min="{{ $precioMin }}" max="{{ $precioMax }}"
+                             value="{{ request('precio_min', $precioMin) }}" step="{{ $step }}"
+                             inputmode="numeric">
                     </div>
                   </div>
                   <div class="col-6">
                     <div class="input-group input-group-sm">
                       <span class="input-group-text">$</span>
-                      <input type="number" class="form-control max-price-input" 
-                             placeholder="Max" 
-                             min="{{ $precioMin }}" max="{{ $precioMax }}" 
-                             value="{{ request('precio_max', $precioMax) }}" step="{{ $step }}">
+                      <input type="number" class="form-control max-price-input"
+                             name="precio_max_input"
+                             placeholder="Max"
+                             min="{{ $precioMin }}" max="{{ $precioMax }}"
+                             value="{{ request('precio_max', $precioMax) }}" step="{{ $step }}"
+                             inputmode="numeric">
                     </div>
                   </div>
                 </div>
@@ -121,6 +135,7 @@
                 <button type="submit" class="btn btn-sm btn-primary w-100">Aplicar Filtro</button>
               </div>
             </div>
+            @endif
           </form>
 
         </div><!--/Pricing Range Widget -->
@@ -139,8 +154,10 @@
           <!-- Filter and Sort Options -->
           <div class="filter-container mb-4" data-aos="fade-up" data-aos-delay="100">
             <form method="GET" action="{{ route('tienda.categorias') }}" id="filterForm">
-              @foreach(request()->except(['buscar', 'orden', 'rango_precio', 'por_pagina']) as $key => $value)
-                @if($value && !in_array($key, ['buscar', 'orden', 'rango_precio', 'por_pagina']))
+              {{-- Cuando el usuario usa el select de rango_precio, descartamos los
+                   valores del slider para evitar filtros contradictorios. --}}
+              @foreach(request()->except(['buscar', 'orden', 'rango_precio', 'por_pagina', 'precio_min', 'precio_max', 'precio_min_input', 'precio_max_input', 'page']) as $key => $value)
+                @if($value)
                   <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                 @endif
               @endforeach
@@ -550,10 +567,46 @@
   transform: translateY(-5px);
 }
 
+/* Enlaces de categorías — sin subrayado por defecto */
+.category-tree .category-link,
+.category-tree .category-link:visited,
+.category-tree .category-link:hover,
+.category-tree .category-link:focus,
+.category-tree .category-link:active {
+  text-decoration: none !important;
+  color: #333;
+  display: block;
+  padding: 6px 4px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.category-tree .category-link:hover {
+  background-color: #f5f5f7;
+  color: var(--accent-color, #0071e3);
+}
+
 /* Estilo para categoría activa */
-.category-link.active {
-  color: var(--accent-color);
+.category-tree .category-link.active {
+  color: var(--accent-color, #0071e3);
   font-weight: 600;
+  background-color: rgba(0, 113, 227, 0.06);
+}
+
+.category-tree .category-count {
+  color: #888;
+  font-size: 0.85em;
+  margin-left: 4px;
+}
+
+/* Reset general de subrayados en widgets del sidebar de categoría */
+.product-categories-widget a,
+.product-categories-widget a:hover,
+.pricing-range-widget a,
+.pricing-range-widget a:hover,
+.active-filters a,
+.active-filters a:hover {
+  text-decoration: none;
 }
 
 /* Range slider personalizado */
@@ -582,35 +635,50 @@
 
 .range-slider input[type="range"] {
   position: absolute;
+  top: -10px;            /* área clickable más grande */
+  left: 0;
   width: 100%;
-  height: 5px;
+  height: 24px;
   background: transparent;
   pointer-events: none;
   -webkit-appearance: none;
   z-index: 2;
+  outline: none;
 }
 
 .range-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 20px;
-  width: 20px;
+  height: 22px;
+  width: 22px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: var(--accent-color, #0071e3);
   pointer-events: auto;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease;
+}
+
+.range-slider input[type="range"]:active::-webkit-slider-thumb,
+.range-slider input[type="range"]:focus::-webkit-slider-thumb {
+  transform: scale(1.15);
 }
 
 .range-slider input[type="range"]::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
+  height: 22px;
+  width: 22px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: var(--accent-color, #0071e3);
   pointer-events: auto;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.range-slider input[type="range"]::-moz-range-track,
+.range-slider input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+  border: none;
 }
 
 /* Fix para el segundo slider */
@@ -703,75 +771,93 @@ $(document).ready(function() {
     }
   });
 
-  // Range slider funcionalidad
-  const minRange = $('.min-range');
-  const maxRange = $('.max-range');
-  const minInput = $('.min-price-input');
-  const maxInput = $('.max-price-input');
-  const progress = $('.slider-progress');
-  const minPrice = $('.current-range .min-price');
-  const maxPrice = $('.current-range .max-price');
+  // Range slider funcionalidad (solo si existe en el DOM)
+  (function initPriceSlider() {
+    const minRange = $('.min-range');
+    const maxRange = $('.max-range');
+    const minInput = $('.min-price-input');
+    const maxInput = $('.max-price-input');
+    const progress = $('.slider-progress');
+    const minPrice = $('.current-range .min-price');
+    const maxPrice = $('.current-range .max-price');
 
-  function updateSlider() {
-    const min = parseInt(minRange.val());
-    const max = parseInt(maxRange.val());
-    const rangeMin = parseInt(minRange.attr('min'));
-    const rangeMax = parseInt(minRange.attr('max'));
-    
-    // Calcular porcentajes basados en el rango real
-    const minPercent = ((min - rangeMin) / (rangeMax - rangeMin)) * 100;
-    const maxPercent = ((max - rangeMin) / (rangeMax - rangeMin)) * 100;
-    
-    progress.css({
-      'left': minPercent + '%',
-      'width': (maxPercent - minPercent) + '%'
+    // Si el slider no está presente (categoría con un solo precio o sin productos), salir.
+    if (minRange.length === 0 || maxRange.length === 0) {
+      return;
+    }
+
+    function updateSlider() {
+      const min = parseInt(minRange.val());
+      const max = parseInt(maxRange.val());
+      const rangeMin = parseInt(minRange.attr('min'));
+      const rangeMax = parseInt(minRange.attr('max'));
+
+      const span = (rangeMax - rangeMin) || 1; // evitar división por cero
+      const minPercent = ((min - rangeMin) / span) * 100;
+      const maxPercent = ((max - rangeMin) / span) * 100;
+
+      progress.css({
+        'left': minPercent + '%',
+        'width': (maxPercent - minPercent) + '%'
+      });
+
+      minInput.val(min);
+      maxInput.val(max);
+      minPrice.text('$' + min.toLocaleString('es-CO'));
+      maxPrice.text('$' + max.toLocaleString('es-CO'));
+    }
+
+    minRange.on('input', function() {
+      const min = parseInt($(this).val());
+      const max = parseInt(maxRange.val());
+      if (min > max) $(this).val(max);
+      updateSlider();
     });
-    
-    minInput.val(min);
-    maxInput.val(max);
-    minPrice.text('$' + min.toLocaleString('es-CO'));
-    maxPrice.text('$' + max.toLocaleString('es-CO'));
-  }
 
-  minRange.on('input', function() {
-    const min = parseInt($(this).val());
-    const max = parseInt(maxRange.val());
-    if (min > max) {
-      $(this).val(max);
-    }
+    maxRange.on('input', function() {
+      const min = parseInt(minRange.val());
+      const max = parseInt($(this).val());
+      if (max < min) $(this).val(min);
+      updateSlider();
+    });
+
+    // Sincronizar inputs numéricos hacia los range, respetando los límites.
+    // Usamos 'change' (no 'input') para no clampar mientras el usuario sigue escribiendo.
+    minInput.on('change', function() {
+      const rangeMin = parseInt(minRange.attr('min'));
+      const currentMax = parseInt(maxRange.val());
+      let val = parseInt($(this).val());
+      if (isNaN(val)) val = rangeMin;
+      if (val < rangeMin) val = rangeMin;
+      if (val > currentMax) val = currentMax;
+      $(this).val(val);
+      minRange.val(val);
+      updateSlider();
+    });
+
+    maxInput.on('change', function() {
+      const rangeMax = parseInt(maxRange.attr('max'));
+      const currentMin = parseInt(minRange.val());
+      let val = parseInt($(this).val());
+      if (isNaN(val)) val = rangeMax;
+      if (val > rangeMax) val = rangeMax;
+      if (val < currentMin) val = currentMin;
+      $(this).val(val);
+      maxRange.val(val);
+      updateSlider();
+    });
+
+    // Enter en los inputs: dispara change y envía el form.
+    minInput.add(maxInput).on('keypress', function(e) {
+      if (e.which === 13) {
+        e.preventDefault();
+        $(this).trigger('change');
+        $('#priceRangeForm').trigger('submit');
+      }
+    });
+
     updateSlider();
-  });
-
-  maxRange.on('input', function() {
-    const min = parseInt(minRange.val());
-    const max = parseInt($(this).val());
-    if (max < min) {
-      $(this).val(min);
-    }
-    updateSlider();
-  });
-
-  minInput.on('input', function() {
-    const val = parseInt($(this).val()) || parseInt(minRange.attr('min'));
-    minRange.val(val).trigger('input');
-  });
-
-  maxInput.on('input', function() {
-    const val = parseInt($(this).val()) || parseInt(maxRange.attr('max'));
-    maxRange.val(val).trigger('input');
-  });
-
-  // Sincronizar inputs al cambiar el range
-  minRange.on('change', function() {
-    $(this).attr('name', 'precio_min');
-  });
-
-  maxRange.on('change', function() {
-    $(this).attr('name', 'precio_max');
-  });
-
-  // Inicializar slider
-  updateSlider();
+  })();
 
   // Show toast notification
   function showToast(type, message) {

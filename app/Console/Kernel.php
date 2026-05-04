@@ -15,7 +15,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Libera stock de compras pendientes con más de 72h sin aprobación
+        // (evita que el inventario quede apartado indefinidamente).
+        $schedule->command('compras:liberar-stock-pendientes --horas=72')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

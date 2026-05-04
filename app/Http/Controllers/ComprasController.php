@@ -65,16 +65,25 @@ class ComprasController extends Controller
         $compras = $query->paginate(20)->withQueryString();
 
         // Estadísticas
+        // Una compra cuenta como "venta confirmada" cuando ya superó la etapa de revisión:
+        // pagada, enviada, entregada. Esto evita perder el monto del contador cuando el
+        // estado avanza después del pago (problema reportado en producción).
+        $estadosVentaConfirmada = ['pagada', 'enviada', 'entregada'];
+
+        $baseEmpresa = Compra::where('empresa_id', $empresa->id);
+
         $estadisticas = [
-            'total_compras' => Compra::where('empresa_id', $empresa->id)->count(),
-            'compras_pagadas' => Compra::where('empresa_id', $empresa->id)->where('estado', 'pagada')->count(),
-            'ventas_mes' => Compra::where('empresa_id', $empresa->id)
-                ->where('estado', 'pagada')
+            'total_compras' => (clone $baseEmpresa)->count(),
+            'compras_pagadas' => (clone $baseEmpresa)->whereIn('estado', $estadosVentaConfirmada)->count(),
+            'ventas_mes' => (clone $baseEmpresa)
+                ->whereIn('estado', $estadosVentaConfirmada)
                 ->whereMonth('created_at', now()->month)
                 ->whereYear('created_at', now()->year)
                 ->sum('total'),
-            'compras_pendientes' => Compra::where('empresa_id', $empresa->id)->where('estado', 'pendiente')->count(),
-            'pendientes_revision' => Compra::where('empresa_id', $empresa->id)->pendientesRevision()->count(),
+            'compras_pendientes' => (clone $baseEmpresa)->where('estado', 'pendiente')->count(),
+            'monto_pendiente' => (clone $baseEmpresa)->where('estado', 'pendiente')->sum('total'),
+            'pendientes_revision' => (clone $baseEmpresa)->pendientesRevision()->count(),
+            'monto_pendientes_revision' => (clone $baseEmpresa)->pendientesRevision()->sum('total'),
         ];
 
         return view('compras.index', compact('compras', 'estadisticas'));

@@ -80,10 +80,10 @@
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="stats-card h-100">
+                    <div class="stats-card h-100" title="Suma de compras pagadas, enviadas y entregadas en el mes en curso">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <p class="text-sm text-gray-600 mb-1">Ventas del Mes</p>
+                                <p class="text-sm text-gray-600 mb-1">Ventas del Mes (confirmadas)</p>
                                 <p class="h4 fw-bold text-purple-600 mb-0">${{ number_format($estadisticas['ventas_mes'], 0, ',', '.') }}</p>
                             </div>
                             <div class="text-purple-500">
@@ -94,11 +94,14 @@
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="stats-card h-100">
+                    <div class="stats-card h-100" title="Compras creadas pero aún no aprobadas. Su stock ya está apartado.">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <p class="text-sm text-gray-600 mb-1">Pendientes</p>
                                 <p class="h4 fw-bold text-warning mb-0">{{ $estadisticas['compras_pendientes'] }}</p>
+                                @if(($estadisticas['monto_pendiente'] ?? 0) > 0)
+                                    <p class="text-xs text-muted mb-0">${{ number_format($estadisticas['monto_pendiente'], 0, ',', '.') }} en stock apartado</p>
+                                @endif
                             </div>
                             <div class="text-warning">
                                 <i class="bi bi-hourglass-split fs-1"></i>
@@ -109,11 +112,14 @@
 
                 @if(($estadisticas['pendientes_revision'] ?? 0) > 0)
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="stats-card h-100" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b;">
+                    <div class="stats-card h-100" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b;" title="Compras con pago manual esperando aprobación">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <p class="text-sm mb-1" style="color: #92400e;">Pagos por Revisar</p>
                                 <p class="h4 fw-bold mb-0" style="color: #92400e;">{{ $estadisticas['pendientes_revision'] }}</p>
+                                @if(($estadisticas['monto_pendientes_revision'] ?? 0) > 0)
+                                    <p class="text-xs mb-0" style="color: #92400e;">${{ number_format($estadisticas['monto_pendientes_revision'], 0, ',', '.') }} a confirmar</p>
+                                @endif
                             </div>
                             <div style="color: #f59e0b;">
                                 <i class="bi bi-exclamation-triangle-fill fs-1"></i>

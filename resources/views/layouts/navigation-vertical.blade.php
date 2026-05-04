@@ -179,6 +179,44 @@
                     <span>Calificaciones</span>
                 </a>
 
+                {{-- Contenido del sitio (páginas administrables) --}}
+                @php
+                    $devolucionesPage = \App\Models\Page::where('slug','politica-de-devoluciones')->first();
+                @endphp
+                <div class="nav-item">
+                    <a href="#contenidoSubmenu"
+                       class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('admin.content-manager.*') ? 'sidebar-active' : '' }}" style="transition: transform 0.2s ease, background-color 0.2s ease; padding: 0.5rem 0.75rem; border-radius: 0.375rem;"
+                       title="Contenido del sitio"
+                       data-bs-toggle="collapse"
+                       aria-expanded="{{ request()->routeIs('admin.content-manager.*') ? 'true' : 'false' }}"
+                       onmouseover="this.style.transform='translateX(5px)'; this.style.backgroundColor='#f0f0f0'"
+                       onmouseout="this.style.transform='translateX(0)'; this.style.backgroundColor='{{ request()->routeIs('admin.content-manager.*') ? '' : 'transparent' }}'">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Contenido del sitio</span>
+                        <i class="bi bi-chevron-down ms-auto submenu-icon"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('admin.content-manager.*') ? 'show' : '' }}" id="contenidoSubmenu">
+                        <div class="ps-3">
+                            <a href="{{ route('admin.content-manager.index') }}"
+                               class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('admin.content-manager.index') ? 'sidebar-active' : '' }}" style="transition: transform 0.2s ease, background-color 0.2s ease;"
+                               onmouseover="this.style.backgroundColor='#f0f0f0'"
+                               onmouseout="this.style.backgroundColor='{{ request()->routeIs('admin.content-manager.index') ? '' : 'transparent' }}'">
+                                <i class="bi bi-list-ul"></i>
+                                <span>Todas las páginas</span>
+                            </a>
+                            @if($devolucionesPage)
+                            <a href="{{ route('admin.content-manager.edit', $devolucionesPage->id) }}"
+                               class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('admin.content-manager.edit') && request()->route('id') == $devolucionesPage->id ? 'sidebar-active' : '' }}" style="transition: transform 0.2s ease, background-color 0.2s ease;"
+                               onmouseover="this.style.backgroundColor='#f0f0f0'"
+                               onmouseout="this.style.backgroundColor='transparent'">
+                                <i class="bi bi-arrow-return-left"></i>
+                                <span>Política de Devoluciones</span>
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 <div class="nav-item">
                     <a href="#blogSubmenu"
                        class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('blog.*') ? 'sidebar-active' : '' }}" style="transition: transform 0.2s ease, background-color 0.2s ease; padding: 0.5rem 0.75rem; border-radius: 0.375rem;"

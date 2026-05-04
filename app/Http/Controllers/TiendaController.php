@@ -1541,4 +1541,26 @@ public function categorias(Request $request)
 
         return view('tienda.blog-post', compact('empresa', 'post', 'categorias', 'carrito', 'productosCarrusel'));
     }
+
+    /**
+     * Página pública de Política de Devoluciones.
+     * Renderiza el contenido administrable desde el panel
+     * (Page 'devoluciones' + relación SEO).
+     */
+    public function politicaDevoluciones()
+    {
+        $empresa = $this->getEmpresa();
+
+        $page = \App\Models\Page::with('seo')
+            ->where('slug', 'politica-de-devoluciones')
+            ->firstOrFail();
+
+        if (!$page->is_active) {
+            abort(404);
+        }
+
+        $carrito = $this->obtenerCarrito($empresa->id);
+
+        return view('tienda.politica-devoluciones', compact('empresa', 'page', 'carrito'));
+    }
 }

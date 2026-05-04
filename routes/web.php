@@ -296,7 +296,16 @@ Route::post('/webhooks/wompi', [App\Http\Controllers\WebhookController::class, '
 require __DIR__.'/auth.php';
 
 // ========== RUTAS DE TIENDA (DEBEN IR AL FINAL) ==========
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+
+    // ========== ADMINISTRADOR DE CONTENIDO (páginas + SEO) ==========
+    Route::prefix('content-manager')->name('content-manager.')->group(function () {
+        Route::get('/', [App\Http\Controllers\AdminContentManagerController::class, 'index'])->name('index');
+        Route::get('/{id}/edit', [App\Http\Controllers\AdminContentManagerController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\AdminContentManagerController::class, 'update'])->name('update');
+        Route::post('/upload-image', [App\Http\Controllers\AdminContentManagerController::class, 'uploadImage'])->name('upload-image');
+    });
+
     // MÓDULO DE COMISIONES DESHABILITADO - Single-tenant
     // Route::get('/dashboard', [App\Http\Controllers\DashboardAdminController::class, 'index'])->name('dashboard');
     // Route::get('/dashboard/empresa/{id}', [App\Http\Controllers\DashboardAdminController::class, 'detalleEmpresa'])->name('dashboard.empresa');
@@ -357,6 +366,10 @@ Route::get('/catalogo', [App\Http\Controllers\TiendaController::class, 'categori
 // Producto individual
 Route::get('/producto/{slug}', [App\Http\Controllers\TiendaController::class, 'producto'])
     ->name('tienda.producto');
+
+// Página de Política de Devoluciones (administrable desde el panel)
+Route::get('/politica-de-devoluciones', [App\Http\Controllers\TiendaController::class, 'politicaDevoluciones'])
+    ->name('tienda.politica-devoluciones');
 
 // Carrito
 Route::get('/carrito', [App\Http\Controllers\TiendaController::class, 'verCarrito'])

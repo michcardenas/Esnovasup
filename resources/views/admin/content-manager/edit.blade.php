@@ -54,6 +54,8 @@
                                 <!-- Aquí se cargará dinámicamente el contenido según la página -->
                                 @if($page->name === 'welcome')
                                     @include('admin.content-manager.partials.welcome-editor')
+                                @elseif($page->name === 'devoluciones')
+                                    @include('admin.content-manager.partials.devoluciones-editor')
                                 @endif
                             </div>
                         </div>

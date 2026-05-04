@@ -286,6 +286,7 @@
               <ul class="footer-links">
                 <li><a href="{{ route('tienda.categorias') }}">Categorías</a></li>
                 <li><a href="{{ route('tienda.carrito') }}">Carrito</a></li>
+                <li><a href="{{ route('tienda.politica-devoluciones') }}">Política de Devoluciones</a></li>
               </ul>
             </div>
           </div>
@@ -392,6 +393,7 @@
               </div>
 
               <div class="legal-links">
+                <a href="{{ route('tienda.politica-devoluciones') }}">Devoluciones</a>
                 <a href="#">Términos</a>
                 <a href="#">Privacidad</a>
                 <a href="#">Cookies</a>

@@ -1042,7 +1042,6 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
               </div>
 
               <!-- Benefits List -->
-              @if($producto->info_envio || $producto->dias_devolucion || $producto->garantia)
               <div class="benefits-list">
                 @if($producto->info_envio)
                 <div class="benefit-item">
@@ -1050,14 +1049,21 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                   <span>{{ $producto->info_envio }}</span>
                 </div>
                 @endif
-                
-                @if($producto->dias_devolucion)
+
+                {{-- Devoluciones: siempre enlaza a la política completa --}}
                 <div class="benefit-item">
                   <i class="bi bi-arrow-clockwise"></i>
-                  <span>{{ $producto->dias_devolucion }}</span>
+                  <span>
+                    @if($producto->dias_devolucion)
+                      {{ $producto->dias_devolucion }} —
+                    @endif
+                    <a href="{{ route('tienda.politica-devoluciones') }}"
+                       style="color: var(--accent-color, #0071e3); text-decoration: underline;">
+                      Ver política de devoluciones
+                    </a>
+                  </span>
                 </div>
-                @endif
-                
+
                 @if($producto->garantia)
                 <div class="benefit-item">
                   <i class="bi bi-shield-check"></i>
@@ -1065,7 +1071,6 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                 </div>
                 @endif
               </div>
-              @endif
 
               {{-- Características del producto (estilo Apple) --}}
               @if($producto->caracteristicas->count() > 0)
@@ -1101,6 +1106,7 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
               <nav class="tabs-navigation nav">
                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ecommerce-product-details-5-overview" type="button">Descripción</button>
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ecommerce-product-details-5-technical" type="button">Detalles Técnicos</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ecommerce-product-details-5-devoluciones" type="button">Devoluciones</button>
                {{--  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ecommerce-product-details-5-customer-reviews" type="button">Reseñas (127)</button> --}}
               </nav>
 
@@ -1156,6 +1162,42 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                         @endif
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {{-- Devoluciones Tab — resumen + link a la política completa --}}
+                <div class="tab-pane fade" id="ecommerce-product-details-5-devoluciones">
+                  <div class="overview-content">
+                    @php
+                      $polDev = \App\Models\Page::with('seo')->where('slug','politica-de-devoluciones')->first();
+                      $cd = $polDev?->content ?? [];
+                    @endphp
+                    @if($polDev && $polDev->is_active)
+                      <div class="row g-4">
+                        <div class="col-lg-6">
+                          @if(!empty($cd['plazos_title']))
+                            <h4>{{ $cd['plazos_title'] }}</h4>
+                            <div>{!! $cd['plazos_body'] ?? '' !!}</div>
+                          @endif
+                        </div>
+                        <div class="col-lg-6">
+                          @if(!empty($cd['condiciones_title']))
+                            <h4>{{ $cd['condiciones_title'] }}</h4>
+                            <div>{!! $cd['condiciones_body'] ?? '' !!}</div>
+                          @endif
+                        </div>
+                      </div>
+                      <div class="text-center mt-3">
+                        <a href="{{ route('tienda.politica-devoluciones') }}" class="btn btn-outline-primary">
+                          <i class="bi bi-arrow-clockwise me-1"></i> Ver política completa
+                        </a>
+                      </div>
+                    @else
+                      <p class="text-center text-muted py-4">
+                        Consulta nuestra
+                        <a href="{{ route('tienda.politica-devoluciones') }}">política de devoluciones</a>.
+                      </p>
+                    @endif
                   </div>
                 </div>
 

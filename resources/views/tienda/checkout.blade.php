@@ -783,6 +783,14 @@
                                 <i class="bi bi-shield-lock-fill"></i>
                                 <span>Pago seguro con Wompi</span>
                             </div>
+
+                            <p class="text-center mt-3 mb-0" style="font-size: 0.82rem; color: #6c757d;">
+                                Al realizar tu compra aceptas nuestra
+                                <a href="{{ route('tienda.politica-devoluciones') }}" target="_blank" rel="noopener"
+                                   style="color: var(--accent-color, #0071e3); text-decoration: underline;">
+                                    política de devoluciones
+                                </a>.
+                            </p>
                             
                             @if($configuracionPasarela && $configuracionPasarela->modo_prueba)
                                 <div class="alert alert-warning mt-3">

@@ -66,11 +66,15 @@
         .legal-page { padding: 64px 0 80px; background: #fafafa; }
         .legal-page .legal-hero {
             background: linear-gradient(135deg, var(--accent-color, #0071e3) 0%, #0a3d62 100%);
-            color: #fff;
+            color: #ffffff !important;
             padding: 56px 0 48px;
             text-align: center;
             border-radius: 0 0 18px 18px;
             margin-bottom: 32px;
+        }
+        .legal-page .legal-hero,
+        .legal-page .legal-hero * {
+            color: #ffffff !important;
         }
         .legal-page .legal-hero .eyebrow {
             display: inline-block;
@@ -78,22 +82,25 @@
             font-weight: 700;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            background: rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.18);
             padding: 6px 14px;
             border-radius: 999px;
             margin-bottom: 14px;
+            color: #ffffff !important;
         }
         .legal-page .legal-hero h1 {
             font-size: clamp(1.8rem, 3.2vw, 2.6rem);
             font-weight: 800;
             margin: 0 0 12px;
             line-height: 1.15;
+            color: #ffffff !important;
         }
         .legal-page .legal-hero p {
             font-size: 1.05rem;
             opacity: 0.95;
             max-width: 720px;
             margin: 0 auto;
+            color: #ffffff !important;
         }
         .legal-page .legal-card {
             background: #fff;

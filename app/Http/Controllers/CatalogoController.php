@@ -123,7 +123,11 @@ class CatalogoController extends Controller
             $query->buscar($request->busqueda);
         }
         
-        $productos = $query->orderBy('nombre')->paginate(12);
+        // Respetar el orden manual definido por el admin (columna `orden`).
+        // Como tiebreaker, ordenar alfabéticamente para que el listado sea estable.
+        $productos = $query->orderBy('productos.orden')
+            ->orderBy('productos.nombre')
+            ->paginate(12);
         
         // Obtener configuración de visualización
         $listaPrecioId = null;

@@ -1064,7 +1064,8 @@ public function categorias(Request $request)
         });
     }
 
-    // Ordenamiento
+    // Ordenamiento — por defecto respeta el orden manual definido por el admin
+    // (columna `orden` en productos). Solo se cambia si el usuario elige otro criterio.
     if ($request->filled('orden')) {
         switch ($request->orden) {
             case 'precio_asc':
@@ -1088,11 +1089,14 @@ public function categorias(Request $request)
             case 'nombre':
                 $query->orderBy('nombre');
                 break;
-            default:
+            case 'recientes':
                 $query->latest();
+                break;
+            default:
+                $query->orderBy('productos.orden')->latest();
         }
     } else {
-        $query->latest();
+        $query->orderBy('productos.orden')->latest();
     }
 
     // Paginación

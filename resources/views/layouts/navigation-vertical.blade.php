@@ -179,6 +179,34 @@
                     <span>Calificaciones</span>
                 </a>
 
+                {{-- Notificaciones por correo --}}
+                <div class="nav-item">
+                    <a href="#notifSubmenu"
+                       class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('admin.notificaciones.*') ? 'sidebar-active' : '' }}" style="transition: transform 0.2s ease, background-color 0.2s ease; padding: 0.5rem 0.75rem; border-radius: 0.375rem;"
+                       data-bs-toggle="collapse"
+                       aria-expanded="{{ request()->routeIs('admin.notificaciones.*') ? 'true' : 'false' }}"
+                       onmouseover="this.style.transform='translateX(5px)'; this.style.backgroundColor='#f0f0f0'"
+                       onmouseout="this.style.transform='translateX(0)'; this.style.backgroundColor='{{ request()->routeIs('admin.notificaciones.*') ? '' : 'transparent' }}'">
+                        <i class="bi bi-envelope-paper-fill"></i>
+                        <span>Notificaciones por correo</span>
+                        <i class="bi bi-chevron-down ms-auto submenu-icon"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('admin.notificaciones.*') ? 'show' : '' }}" id="notifSubmenu">
+                        <div class="ps-3">
+                            <a href="{{ route('admin.notificaciones.destinatarios.index') }}"
+                               class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('admin.notificaciones.destinatarios.*') ? 'sidebar-active' : '' }}">
+                                <i class="bi bi-people-fill"></i>
+                                <span>Destinatarios</span>
+                            </a>
+                            <a href="{{ route('admin.notificaciones.plantillas.index') }}"
+                               class="nav-link mb-2 d-flex align-items-center gap-2 text-dark {{ request()->routeIs('admin.notificaciones.plantillas.*') ? 'sidebar-active' : '' }}">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span>Plantillas de correo</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Contenido del sitio (páginas administrables) --}}
                 @php
                     $devolucionesPage = \App\Models\Page::where('slug','politica-de-devoluciones')->first();

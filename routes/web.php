@@ -306,6 +306,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('/upload-image', [App\Http\Controllers\AdminContentManagerController::class, 'uploadImage'])->name('upload-image');
     });
 
+    // ========== NOTIFICACIONES POR CORREO (destinatarios + plantillas) ==========
+    Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+        Route::get('/destinatarios', [App\Http\Controllers\AdminNotificacionesController::class, 'destinatariosIndex'])->name('destinatarios.index');
+        Route::post('/destinatarios', [App\Http\Controllers\AdminNotificacionesController::class, 'destinatariosStore'])->name('destinatarios.store');
+        Route::put('/destinatarios/{destinatario}', [App\Http\Controllers\AdminNotificacionesController::class, 'destinatariosUpdate'])->name('destinatarios.update');
+        Route::delete('/destinatarios/{destinatario}', [App\Http\Controllers\AdminNotificacionesController::class, 'destinatariosDestroy'])->name('destinatarios.destroy');
+
+        Route::get('/plantillas', [App\Http\Controllers\AdminNotificacionesController::class, 'plantillasIndex'])->name('plantillas.index');
+        Route::get('/plantillas/{plantilla}/edit', [App\Http\Controllers\AdminNotificacionesController::class, 'plantillasEdit'])->name('plantillas.edit');
+        Route::put('/plantillas/{plantilla}', [App\Http\Controllers\AdminNotificacionesController::class, 'plantillasUpdate'])->name('plantillas.update');
+    });
+
     // MÓDULO DE COMISIONES DESHABILITADO - Single-tenant
     // Route::get('/dashboard', [App\Http\Controllers\DashboardAdminController::class, 'index'])->name('dashboard');
     // Route::get('/dashboard/empresa/{id}', [App\Http\Controllers\DashboardAdminController::class, 'detalleEmpresa'])->name('dashboard.empresa');

@@ -10,12 +10,12 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class CompraAprobadaVendedor extends Mailable
+class CompraConfirmadaCliente extends Mailable
 {
     use Queueable, SerializesModels, UsesEmailTemplate;
 
     public Compra $compra;
-    protected string $templateKey = 'compra_aprobada_vendedor';
+    protected string $templateKey = 'compra_confirmada_cliente';
 
     public function __construct(Compra $compra)
     {
@@ -26,7 +26,7 @@ class CompraAprobadaVendedor extends Mailable
     {
         $tpl = $this->dbTemplate();
         return new Envelope(
-            subject: $tpl['subject'] ?? ('Nueva venta confirmada - Orden #' . $this->compra->numero_compra),
+            subject: $tpl['subject'] ?? ('Tu compra #' . $this->compra->numero_compra . ' ha sido confirmada'),
         );
     }
 
@@ -38,13 +38,9 @@ class CompraAprobadaVendedor extends Mailable
         }
 
         return new Content(
-            markdown: 'emails.compra-aprobada-vendedor',
+            view: 'emails.compra-confirmada-cliente',
+            with: ['compra' => $this->compra],
         );
-    }
-
-    public function attachments(): array
-    {
-        return [];
     }
 
     protected function templateVars(): array

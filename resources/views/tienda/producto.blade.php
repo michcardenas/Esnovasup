@@ -742,28 +742,64 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
   opacity: 1;
 }
 
-/* Imagen revelada estilo Apple */
+/* Imagen revelada estilo Apple — entrada de izquierda a derecha */
 .apple-feature-image-wrap {
   margin-top: 0.5rem;
   border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
-  transform: translateY(20px) scale(0.96);
+  transform: translateX(-80px) scale(0.95);
   opacity: 0;
-  transition: transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) 0.15s,
+  transition: transform 0.75s cubic-bezier(0.25, 0.1, 0.25, 1) 0.15s,
               opacity 0.55s ease-out 0.15s,
               box-shadow 0.4s ease;
-  will-change: transform, opacity;
+  will-change: transform, opacity, box-shadow;
+  perspective: 1200px;
+  transform-style: preserve-3d;
 }
 
 .apple-feature-item.active .apple-feature-image-wrap {
-  transform: translateY(0) scale(1);
+  transform: translateX(0) scale(1);
   opacity: 1;
 }
 
-.apple-feature-image-wrap:hover {
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+/* Tarjeta 3D interactiva — base */
+.apple-feature-image-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.apple-feature-image-card.is-tilting {
+  transition: transform 0.08s linear, box-shadow 0.3s ease;
+}
+
+.apple-feature-item.active .apple-feature-image-wrap:hover {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
+}
+
+/* Brillo dinámico que sigue al cursor */
+.apple-feature-image-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0) 45%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+}
+
+.apple-feature-image-card.is-tilting::after {
+  opacity: 1;
 }
 
 .apple-feature-image {
@@ -773,11 +809,12 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
   max-height: 420px;
   object-fit: contain;
   padding: 1rem;
-  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transform: translateZ(0);
 }
 
-.apple-feature-image-wrap:hover .apple-feature-image {
-  transform: scale(1.03);
+.apple-feature-image-card:hover .apple-feature-image {
+  transform: translateZ(40px) scale(1.04);
 }
 
 @media (max-width: 575.98px) {
@@ -1158,10 +1195,12 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                       <p>{{ $c->descripcion }}</p>
                       @if($c->tiene_imagen)
                       <div class="apple-feature-image-wrap">
-                        <img src="{{ $c->imagen_url }}"
-                             alt="{{ $c->titulo }}"
-                             class="apple-feature-image"
-                             loading="lazy">
+                        <div class="apple-feature-image-card">
+                          <img src="{{ $c->imagen_url }}"
+                               alt="{{ $c->titulo }}"
+                               class="apple-feature-image"
+                               loading="lazy">
+                        </div>
                       </div>
                       @endif
                     </div>
@@ -1920,6 +1959,51 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
       }
     });
   });
+
+  // === Efecto 3D tilt en imagen de característica ===
+  // La tarjeta se inclina siguiendo el cursor, dando sensación de profundidad.
+  (function() {
+    var MAX_TILT = 12;   // grados máximos de inclinación
+    var SCALE   = 1.02;  // ligero zoom al hover
+
+    document.querySelectorAll('.apple-feature-image-card').forEach(function(card) {
+      var rafId = null;
+
+      card.addEventListener('mousemove', function(e) {
+        var rect = card.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        var cx = rect.width / 2;
+        var cy = rect.height / 2;
+
+        // Normalizado entre -1 y 1
+        var dx = (x - cx) / cx;
+        var dy = (y - cy) / cy;
+
+        // RotateY = mover horizontal (eje vertical), RotateX = mover vertical (eje horizontal)
+        var rotY = dx * MAX_TILT;
+        var rotX = -dy * MAX_TILT;
+
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(function() {
+          card.classList.add('is-tilting');
+          card.style.transform =
+            'perspective(900px) rotateX(' + rotX.toFixed(2) + 'deg) ' +
+            'rotateY(' + rotY.toFixed(2) + 'deg) scale(' + SCALE + ')';
+
+          // Posición del brillo siguiendo al cursor
+          card.style.setProperty('--mx', ((x / rect.width) * 100).toFixed(1) + '%');
+          card.style.setProperty('--my', ((y / rect.height) * 100).toFixed(1) + '%');
+        });
+      });
+
+      card.addEventListener('mouseleave', function() {
+        if (rafId) cancelAnimationFrame(rafId);
+        card.classList.remove('is-tilting');
+        card.style.transform = '';
+      });
+    });
+  })();
 
   // Sincronizar: al hacer clic en thumbnail de característica, abrir su acordeón
   document.querySelectorAll('.thumbnail-caract').forEach(function(thumb) {

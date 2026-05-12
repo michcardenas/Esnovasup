@@ -661,7 +661,11 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
   border-bottom: 1px solid #e0e0e0;
   cursor: pointer;
   padding: 1rem 0;
-  transition: background 0.3s;
+  transition: background 0.3s ease;
+}
+
+.apple-feature-item:hover .apple-feature-title {
+  color: var(--accent-color, #0071e3);
 }
 
 .apple-feature-item:first-child {
@@ -685,34 +689,120 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  transition: background 0.3s;
+  transition: background 0.35s ease, transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.apple-feature-icon i {
+  transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .apple-feature-item.active .apple-feature-icon {
   background: var(--accent-color, #0071e3);
+  transform: rotate(180deg);
 }
 
 .apple-feature-title {
   font-size: 1.05rem;
   font-weight: 600;
   color: #1d1d1f;
+  transition: color 0.3s ease;
 }
 
+/* Cuerpo colapsable con transición suave estilo Apple */
 .apple-feature-body {
-  padding: 0.75rem 0 0.25rem 2.75rem;
-  animation: appleSlideDown 0.35s ease-out;
+  padding: 0 0 0 2.75rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.55s cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 0.4s ease-out,
+    padding 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.apple-feature-item.active .apple-feature-body {
+  max-height: 1200px;
+  opacity: 1;
+  padding: 0.85rem 0 0.5rem 2.75rem;
 }
 
 .apple-feature-body p {
   color: #6e6e73;
   font-size: 0.93rem;
   line-height: 1.6;
-  margin: 0;
+  margin: 0 0 0.75rem 0;
+  transform: translateY(-6px);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.1s,
+              opacity 0.45s ease-out 0.1s;
 }
 
-@keyframes appleSlideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+.apple-feature-item.active .apple-feature-body p {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Imagen revelada estilo Apple */
+.apple-feature-image-wrap {
+  margin-top: 0.5rem;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(20px) scale(0.96);
+  opacity: 0;
+  transition: transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) 0.15s,
+              opacity 0.55s ease-out 0.15s,
+              box-shadow 0.4s ease;
+  will-change: transform, opacity;
+}
+
+.apple-feature-item.active .apple-feature-image-wrap {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.apple-feature-image-wrap:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.apple-feature-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+  padding: 1rem;
+  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.apple-feature-image-wrap:hover .apple-feature-image {
+  transform: scale(1.03);
+}
+
+@media (max-width: 575.98px) {
+  .apple-feature-body {
+    padding-left: 2.5rem;
+  }
+  .apple-feature-item.active .apple-feature-body {
+    padding: 0.75rem 0 0.5rem 2.5rem;
+  }
+  .apple-feature-image {
+    max-height: 280px;
+    padding: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apple-feature-body,
+  .apple-feature-body p,
+  .apple-feature-image-wrap,
+  .apple-feature-image,
+  .apple-feature-icon,
+  .apple-feature-icon i {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* Badge en thumbnails de características */
@@ -827,18 +917,6 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                   <img src="{{ $imagen->url }}" alt="{{ $producto->nombre }} - Vista {{ $loop->iteration }}" class="img-fluid">
                 </div>
                 @endforeach
-                {{-- Thumbnails de características con imagen --}}
-                @foreach($producto->caracteristicas as $i => $c)
-                  @if($c->tiene_imagen)
-                <div class="thumbnail-wrapper thumbnail-item thumbnail-caract"
-                     data-image="{{ $c->imagen_url }}" data-type="feature" data-feature="{{ $i }}"
-                     onclick="changeMainImage('{{ $c->imagen_url }}', this)"
-                     title="{{ $c->titulo }}">
-                  <img src="{{ $c->imagen_url }}" alt="{{ $c->titulo }}" class="img-fluid">
-                  <span class="thumbnail-caract-badge"><i class="bi bi-stars"></i></span>
-                </div>
-                  @endif
-                @endforeach
               </div>
               @else
               {{-- Si no hay imágenes, mostrar una sola con placeholder --}}
@@ -846,17 +924,6 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                 <div class="thumbnail-wrapper thumbnail-item active"
                      data-image="{{ asset('assets/img/product/placeholder.webp') }}">
                   <img src="{{ asset('assets/img/product/placeholder.webp') }}" alt="{{ $producto->nombre }}" class="img-fluid">
-                </div>
-              </div>
-              @endif
-
-              {{-- Panel descriptivo dinámico de la característica activa --}}
-              @if($producto->caracteristicas->count() > 0)
-              <div class="feature-caption" id="feature-caption" aria-live="polite">
-                <div class="feature-caption-inner">
-                  <span class="feature-caption-eyebrow" id="feature-caption-eyebrow">Toca una característica</span>
-                  <h4 class="feature-caption-title" id="feature-caption-title">{{ $producto->nombre }}</h4>
-                  <p class="feature-caption-text" id="feature-caption-text">Selecciona una característica para descubrir sus detalles.</p>
                 </div>
               </div>
               @endif
@@ -1087,8 +1154,16 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
                       </span>
                       <span class="apple-feature-title">{{ $c->titulo }}</span>
                     </div>
-                    <div class="apple-feature-body" style="display:none">
+                    <div class="apple-feature-body">
                       <p>{{ $c->descripcion }}</p>
+                      @if($c->tiene_imagen)
+                      <div class="apple-feature-image-wrap">
+                        <img src="{{ $c->imagen_url }}"
+                             alt="{{ $c->titulo }}"
+                             class="apple-feature-image"
+                             loading="lazy">
+                      </div>
+                      @endif
                     </div>
                   </div>
                   @endforeach
@@ -1811,47 +1886,37 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
 @push('scripts')
 <script>
   // === Apple-Style Features Accordion ===
+  // La imagen de la característica se muestra INLINE dentro del acordeón,
+  // NO se cambia la imagen grande del producto a la izquierda.
   document.querySelectorAll('.apple-feature-item').forEach(function(item) {
     item.addEventListener('click', function() {
-      var featureIndex = this.dataset.feature;
       var isActive = this.classList.contains('active');
-      var imageUrl = this.dataset.imageUrl;
-      var titulo = (this.querySelector('.apple-feature-title') || {}).textContent || '';
-      var descripcion = (this.querySelector('.apple-feature-body p') || {}).textContent || '';
 
-      // Cerrar todos
+      // Cerrar todos (la animación de cierre la maneja CSS al remover .active)
       document.querySelectorAll('.apple-feature-item').forEach(function(el) {
         el.classList.remove('active');
-        el.querySelector('.apple-feature-body').style.display = 'none';
-        el.querySelector('.apple-feature-icon i').className = 'bi bi-plus';
+        var icon = el.querySelector('.apple-feature-icon i');
+        if (icon) icon.className = 'bi bi-plus';
       });
 
       // Abrir el seleccionado (si no estaba activo)
       if (!isActive) {
         this.classList.add('active');
-        this.querySelector('.apple-feature-body').style.display = 'block';
-        this.querySelector('.apple-feature-icon i').className = 'bi bi-dash';
+        var iconEl = this.querySelector('.apple-feature-icon i');
+        if (iconEl) iconEl.className = 'bi bi-dash';
 
-        // Cambiar imagen principal y activar thumbnail correspondiente
-        if (imageUrl) {
-          var thumb = document.querySelector('.thumbnail-caract[data-feature="' + featureIndex + '"]');
-          if (thumb) {
-            changeMainImage(imageUrl, thumb);
-          } else {
-            // Si no hay thumbnail, cambiar directamente con fade
-            changeMainImage(imageUrl, null);
+        // Scroll suave hacia el item para que la imagen revelada quede visible
+        var self = this;
+        setTimeout(function() {
+          var rect = self.getBoundingClientRect();
+          var headerOffset = 90; // compensa navbar fija
+          if (rect.top < headerOffset || rect.bottom > window.innerHeight) {
+            window.scrollTo({
+              top: window.pageYOffset + rect.top - headerOffset,
+              behavior: 'smooth'
+            });
           }
-        }
-
-        // Actualizar panel descriptivo dinámico
-        updateFeatureCaption('Característica destacada', titulo, descripcion || 'Sin descripción disponible.');
-      } else {
-        // Al cerrar, volver a la primera imagen del producto y restaurar caption
-        var firstThumb = document.querySelector('.thumbnail-item[data-type="product"]');
-        if (firstThumb) {
-          changeMainImage(firstThumb.dataset.image, firstThumb);
-        }
-        resetFeatureCaption();
+        }, 250);
       }
     });
   });

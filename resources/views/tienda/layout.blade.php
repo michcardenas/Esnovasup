@@ -12,6 +12,22 @@
   <link href="{{ $empresa->logo_url }}" rel="icon">
   <link href="{{ asset('assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
 
+  {{-- Open Graph / Facebook / WhatsApp --}}
+  <meta property="og:type" content="@yield('og_type', 'website')">
+  <meta property="og:site_name" content="{{ $empresa->nombre }}">
+  <meta property="og:title" content="@yield('og_title', $empresa->nombre . ' - Tienda Online')">
+  <meta property="og:description" content="@yield('og_description', $empresa->descripcion)">
+  <meta property="og:url" content="@yield('og_url', url()->current())">
+  <meta property="og:image" content="@yield('og_image', $empresa->logo_url)">
+  <meta property="og:image:secure_url" content="@yield('og_image', $empresa->logo_url)">
+  <meta property="og:image:alt" content="{{ $empresa->nombre }}">
+
+  {{-- Twitter Card --}}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="@yield('og_title', $empresa->nombre . ' - Tienda Online')">
+  <meta name="twitter:description" content="@yield('og_description', $empresa->descripcion)">
+  <meta name="twitter:image" content="@yield('og_image', $empresa->logo_url)">
+
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>

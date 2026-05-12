@@ -742,17 +742,23 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
   opacity: 1;
 }
 
-/* Imagen revelada estilo Apple — entrada de izquierda a derecha */
+/* Contenedor que enmascara el slide para que la imagen entre desde fuera */
+.apple-feature-body {
+  /* overflow: hidden ya viene del estilo del cuerpo */
+}
+
+/* Imagen revelada estilo Apple — slide-in desde la izquierda hacia la derecha */
 .apple-feature-image-wrap {
   margin-top: 0.5rem;
   border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
-  transform: translateX(-80px) scale(0.95);
+  /* Inicio: fuera del contenedor por la izquierda */
+  transform: translateX(-110%);
   opacity: 0;
-  transition: transform 0.75s cubic-bezier(0.25, 0.1, 0.25, 1) 0.15s,
-              opacity 0.55s ease-out 0.15s,
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.18s,
+              opacity 0.5s ease-out 0.2s,
               box-shadow 0.4s ease;
   will-change: transform, opacity, box-shadow;
   perspective: 1200px;
@@ -760,7 +766,8 @@ nav[role="navigation"] > div > span.relative.z-0 > a:last-child {
 }
 
 .apple-feature-item.active .apple-feature-image-wrap {
-  transform: translateX(0) scale(1);
+  /* Destino: posición final */
+  transform: translateX(0);
   opacity: 1;
 }
 

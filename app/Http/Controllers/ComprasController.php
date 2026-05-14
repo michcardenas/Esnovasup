@@ -314,14 +314,15 @@ class ComprasController extends Controller
     }
 
     /**
-     * Exportar compras a Excel
+     * Exportar compras a Excel (XLSX con 2 hojas: Resumen + Items)
      */
     public function exportar(Request $request)
     {
         $empresa = auth()->user()->empresa;
-        
+
         $query = Compra::where('empresa_id', $empresa->id)
-            ->with(['items', 'ciudad', 'transaccionAprobada']);
+            ->with(['items', 'ciudad', 'transaccionAprobada'])
+            ->orderBy('created_at', 'desc');
 
         // Aplicar los mismos filtros del index
         if ($request->filled('estado')) {
@@ -336,11 +337,28 @@ class ComprasController extends Controller
             $query->whereDate('created_at', '<=', $request->fecha_hasta);
         }
 
+        if ($request->filled('buscar')) {
+            $buscar = $request->buscar;
+            $query->where(function ($q) use ($buscar) {
+                $q->where('numero_compra', 'like', "%{$buscar}%")
+                  ->orWhere('nombre_cliente', 'like', "%{$buscar}%")
+                  ->orWhere('email_cliente', 'like', "%{$buscar}%")
+                  ->orWhere('telefono_cliente', 'like', "%{$buscar}%");
+            });
+        }
+
         $compras = $query->get();
 
-        // Aquí implementarías la exportación con Laravel Excel
-        // Por ahora retorno un mensaje
-        return back()->with('info', 'Funcionalidad de exportación en desarrollo');
+        if ($compras->isEmpty()) {
+            return back()->with('warning', 'No hay compras para exportar con los filtros aplicados.');
+        }
+
+        $nombreArchivo = 'compras_' . now()->format('Y-m-d_His') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\ComprasExport($compras),
+            $nombreArchivo
+        );
     }
 
     /**
